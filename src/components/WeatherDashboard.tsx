@@ -1,8 +1,8 @@
-import { MapPin, Moon, Sun, Cloud, Search, Wind, Droplets, Thermometer } from 'lucide-react';
+import { MapPin, Moon, Sun, Cloud, Search } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { useFavorites } from '../hooks/useFavorites';
 import useGeolocation from '../hooks/useGeolocation';
-import { fetchForecastData, fetchWeatherData, fetchAirQualityData, getWindDirection, getWeatherDescription } from '../services/weatherService';
+import { fetchForecastData, fetchWeatherData, fetchAirQualityData } from '../services/weatherService';
 import { ForecastData, Location, WeatherData, AirQualityData } from '../types';
 import CurrentWeather from './CurrentWeather';
 import Favorites from './Favorites';
@@ -67,13 +67,7 @@ const WeatherDashboard: React.FC = () => {
       addRecentSearch(location);
     } catch (err) {
       console.error('Error fetching weather:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch weather data. Please try again.';
-      setError(errorMessage);
-      
-      // If it's an API key error, show a more helpful message
-      if (errorMessage.includes('API key is not configured')) {
-        setError('Weather API key is not configured. Please check your environment variables.');
-      }
+      setError('Failed to fetch weather data. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -209,17 +203,6 @@ const WeatherDashboard: React.FC = () => {
             ) : error ? (
               <div className="mt-8 p-6 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
                 <p className="text-red-700 dark:text-red-400">{error}</p>
-                {error.includes('API key') && (
-                  <div className="mt-4 text-sm">
-                    <p className="text-red-600 dark:text-red-300">To fix this:</p>
-                    <ol className="list-decimal list-inside mt-2 space-y-1">
-                      <li>Go to your Vercel project settings</li>
-                      <li>Navigate to Environment Variables</li>
-                      <li>Add VITE_OPENWEATHER_API_KEY with your OpenWeatherMap API key</li>
-                      <li>Redeploy your application</li>
-                    </ol>
-                  </div>
-                )}
               </div>
             ) : weatherData && (
               <CurrentWeather 
