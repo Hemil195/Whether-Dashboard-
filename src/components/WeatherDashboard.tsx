@@ -1,20 +1,22 @@
-import { MapPin, Moon, Sun, Cloud, Search } from 'lucide-react';
+import { MapPin, Moon, Sun, Cloud, Search, Wind, Droplets, Thermometer } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { useFavorites } from '../hooks/useFavorites';
 import useGeolocation from '../hooks/useGeolocation';
-import { fetchForecastData, fetchWeatherData } from '../services/weatherService';
-import { ForecastData, Location, WeatherData } from '../types';
+import { fetchForecastData, fetchWeatherData, fetchAirQualityData, getWindDirection, getWeatherDescription } from '../services/weatherService';
+import { ForecastData, Location, WeatherData, AirQualityData } from '../types';
 import CurrentWeather from './CurrentWeather';
 import Favorites from './Favorites';
 import Forecast from './Forecast';
 import SearchBar from './SearchBar';
 import { useRecentSearches } from '../hooks/useRecentSearches';
+import AirQuality from './AirQuality';
 
 const WeatherDashboard: React.FC = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isMetric, setIsMetric] = useState(true);
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
   const [forecastData, setForecastData] = useState<ForecastData | null>(null);
+  const [airQualityData, setAirQualityData] = useState<AirQualityData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { location, isGeoLoading, geoError, getLocation } = useGeolocation();
@@ -49,11 +51,15 @@ const WeatherDashboard: React.FC = () => {
     console.log('Fetching weather for location:', location);
 
     try {
-      const weather = await fetchWeatherData(location, isMetric);
-      setWeatherData(weather);
+      const [weather, forecast, airQuality] = await Promise.all([
+        fetchWeatherData(location, isMetric),
+        fetchForecastData(location, isMetric),
+        fetchAirQualityData(location)
+      ]);
       
-      const forecast = await fetchForecastData(location, isMetric);
+      setWeatherData(weather);
       setForecastData(forecast);
+      setAirQualityData(airQuality);
       
       // Save last searched location
       localStorage.setItem('lastLocation', JSON.stringify(location));
@@ -61,7 +67,13 @@ const WeatherDashboard: React.FC = () => {
       addRecentSearch(location);
     } catch (err) {
       console.error('Error fetching weather:', err);
-      setError('Failed to fetch weather data. Please try again.');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch weather data. Please try again.';
+      setError(errorMessage);
+      
+      // If it's an API key error, show a more helpful message
+      if (errorMessage.includes('API key is not configured')) {
+        setError('Weather API key is not configured. Please check your environment variables.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -197,6 +209,17 @@ const WeatherDashboard: React.FC = () => {
             ) : error ? (
               <div className="mt-8 p-6 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
                 <p className="text-red-700 dark:text-red-400">{error}</p>
+                {error.includes('API key') && (
+                  <div className="mt-4 text-sm">
+                    <p className="text-red-600 dark:text-red-300">To fix this:</p>
+                    <ol className="list-decimal list-inside mt-2 space-y-1">
+                      <li>Go to your Vercel project settings</li>
+                      <li>Navigate to Environment Variables</li>
+                      <li>Add VITE_OPENWEATHER_API_KEY with your OpenWeatherMap API key</li>
+                      <li>Redeploy your application</li>
+                    </ol>
+                  </div>
+                )}
               </div>
             ) : weatherData && (
               <CurrentWeather 
@@ -223,6 +246,11 @@ const WeatherDashboard: React.FC = () => {
               />
             )}
           </div>
+
+          {/* Air Quality Section */}
+          {airQualityData && (
+            <AirQuality data={airQualityData} />
+          )}
 
           {/* Forecast Section */}
           {forecastData && (

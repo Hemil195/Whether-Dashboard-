@@ -11,12 +11,12 @@ export interface WeatherData {
     lon: number;
     lat: number;
   };
-  weather: {
+  weather: Array<{
     id: number;
     main: string;
     description: string;
     icon: string;
-  }[];
+  }>;
   base: string;
   main: {
     temp: number;
@@ -53,7 +53,7 @@ export interface ForecastData {
   cod: string;
   message: number;
   cnt: number;
-  list: {
+  list: Array<{
     dt: number;
     main: {
       temp: number;
@@ -63,12 +63,12 @@ export interface ForecastData {
       pressure: number;
       humidity: number;
     };
-    weather: {
+    weather: Array<{
       id: number;
       main: string;
       description: string;
       icon: string;
-    }[];
+    }>;
     clouds: {
       all: number;
     };
@@ -78,11 +78,8 @@ export interface ForecastData {
     };
     visibility: number;
     pop: number;
-    sys: {
-      pod: string;
-    };
     dt_txt: string;
-  }[];
+  }>;
   city: {
     id: number;
     name: string;
@@ -96,4 +93,27 @@ export interface ForecastData {
     sunrise: number;
     sunset: number;
   };
+}
+
+export interface AirQualityData {
+  coord: {
+    lon: number;
+    lat: number;
+  };
+  list: Array<{
+    dt: number;
+    main: {
+      aqi: number;
+    };
+    components: {
+      co: number;
+      no: number;
+      no2: number;
+      o3: number;
+      so2: number;
+      pm2_5: number;
+      pm10: number;
+      nh3: number;
+    };
+  }>;
 }
