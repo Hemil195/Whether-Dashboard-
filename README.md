@@ -4,6 +4,10 @@
 
 WeatherPro is a modern, responsive web application built with React, TypeScript, and Tailwind CSS. It provides real-time weather data and forecasts using the OpenWeatherMap API.
 
+## Live Demo
+
+Visit the live application at: [WeatherPro Dashboard](https://weatherpro-delta.vercel.app/)
+
 ## Key Features
 
 *   **Real-time Weather Data:** Displays current weather conditions for a searched or current location.
